@@ -49,7 +49,7 @@ body:before{content:"✿";position:fixed;top:11%;left:3%;font-size:45px;color:#e
     <div class="panel progress-panel">
       <div class="flower-medal">💐</div>
       <div style="flex:1;min-width:0">
-        <div class="small-label">Hành trình </div>
+        <div class="small-label">Hành trình</div>
         <div class="count"><span id="giftCount">0</span> <span>/ 50 bó hoa</span></div>
         <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
         <div class="progress-note" id="progressNote">Mỗi bó hoa là gửi đi một nỗi nhớ ♡</div>
@@ -72,7 +72,7 @@ body:before{content:"✿";position:fixed;top:11%;left:3%;font-size:45px;color:#e
         <button class="active" id="calendarMode">▦ Lịch cả năm</button>
         <button id="listMode">☷ Ngày đã tặng</button>
       </div>
-      <button class="add-btn" id="openModal">＋ Tích nhận bó hoa</button>
+      <button class="add-btn" id="openModal">＋ Ghi nhận bó hoa</button>
     </div>
   </div>
   <div class="legend"><span class="legend-dot"></span> Ngày đã tặng hoa <span style="margin-left:7px">·</span> <span>Chạm vào một ngày để ghi nhận hoặc xem ghi chú</span></div>
@@ -81,6 +81,7 @@ body:before{content:"✿";position:fixed;top:11%;left:3%;font-size:45px;color:#e
     <div class="list-header"><h3>Những ngày có hoa ♡</h3><span class="small-label" id="listCount">0 lần</span></div>
     <div id="giftList" class="gift-list"></div>
   </section>
+  <div class="footer">Được tạo bằng <span>♡</span> cho những điều ngọt ngào.</div>
 </div>
 
 <div class="modal-backdrop" id="modalBackdrop">
@@ -89,7 +90,8 @@ body:before{content:"✿";position:fixed;top:11%;left:3%;font-size:45px;color:#e
     <p>Lưu giữ ngày đặc biệt ấy trong hành trình yêu thương.</p>
     <label class="field-label" for="giftDate">Ngày tặng hoa</label>
     <input type="date" id="giftDate" required>
-    <label class="field-label" for="giftNote">Lời nhắn nhỏ </label>
+    <label class="field-label" for="giftNote">Lời nhắn nhỏ (không bắt buộc)</label>
+    <textarea id="giftNote" maxlength="180" placeholder="Ví dụ: Một bó hoa hồng ..."></textarea>
     <div class="modal-actions">
       <button type="button" class="secondary-btn" id="cancelModal">Để sau</button>
       <button type="submit" class="add-btn">♡ Lưu bó hoa</button>
@@ -131,19 +133,38 @@ body:before{content:"✿";position:fixed;top:11%;left:3%;font-size:45px;color:#e
   }
   // Resolve the form fields by ID, with structural fallbacks for older/customized HTML.
   const getGiftDateInput = () => $('giftDate') || document.querySelector('#giftForm input[type="date"]');
-  const getGiftNoteInput = () => $('giftNote') || document.querySelector('#giftForm textarea');
+  function getGiftNoteInput(){
+    let input = $('giftNote') || document.querySelector('#giftForm textarea, .modal textarea');
+    // If an older deployed HTML version has no note field, add it dynamically.
+    if (!input) {
+      const form = $('giftForm') || document.querySelector('.modal-backdrop form, .modal');
+      if (!form) return null;
+      const label = document.createElement('label');
+      label.className = 'field-label';
+      label.htmlFor = 'giftNote';
+      label.textContent = 'Lời nhắn nhỏ (không bắt buộc)';
+      input = document.createElement('textarea');
+      input.id = 'giftNote';
+      input.maxLength = 180;
+      input.placeholder = 'Ví dụ: Một bó tulip hồng vì hôm nay cậu đã rất cố gắng...';
+      const actions = form.querySelector('.modal-actions');
+      if (actions) { form.insertBefore(label, actions); form.insertBefore(input, actions); }
+      else { form.append(label, input); }
+    }
+    return input;
+  }
   const getModalBackdrop = () => $('modalBackdrop') || document.querySelector('#giftForm')?.closest('.modal-backdrop');
   function openFor(key){
     const dateInput = getGiftDateInput();
     const noteInput = getGiftNoteInput();
     const backdrop = getModalBackdrop();
-    if (!dateInput || !noteInput || !backdrop) {
+    if (!dateInput || !backdrop) {
       console.error('Không tìm thấy form nhập bó hoa.', { dateInput: !!dateInput, noteInput: !!noteInput, backdrop: !!backdrop });
       toast('Thiếu form nhập bó hoa trong HTML. Hãy cập nhật lại index.html mới nhất rồi deploy lại.');
       return;
     }
     dateInput.value = key || keyFor(today.getFullYear(),today.getMonth(),today.getDate());
-    noteInput.value = key && gifts[key] ? (gifts[key].note||'') : '';
+    if (noteInput) noteInput.value = key && gifts[key] ? (gifts[key].note||'') : '';
     backdrop.classList.add('open'); setTimeout(()=>dateInput.focus(),50);
   }
   function closeModal(){ const backdrop = getModalBackdrop(); if (backdrop) backdrop.classList.remove('open'); }
@@ -200,12 +221,12 @@ body:before{content:"✿";position:fixed;top:11%;left:3%;font-size:45px;color:#e
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
   $('giftForm').addEventListener('submit',async e=>{
     e.preventDefault();const dateInput=getGiftDateInput(), noteInput=getGiftNoteInput();
-    if(!dateInput || !noteInput){toast('Thiếu ô ngày hoặc ghi chú trong form. Hãy deploy lại index.html mới nhất.');return;}
+    if(!dateInput){toast('Không tìm thấy ô ngày trong form. Hãy cập nhật index.html mới nhất.');return;}
     const key=dateInput.value;if(!key)return;
     if(!/^\d{4}-\d{2}-\d{2}$/.test(key)){toast('Vui lòng chọn ngày hợp lệ.');return;}
     const [y,m,d]=key.split('-').map(Number), date=new Date(y,m-1,d);
     if(date.getFullYear()!==y||date.getMonth()!==m-1||date.getDate()!==d){toast('Ngày bạn chọn không hợp lệ.');return;}
-    year=y;closeModal();await upsertGift(key,noteInput.value.trim());
+    year=y;closeModal();await upsertGift(key,(noteInput?.value || '').trim());
   });
   refreshFromCloud(true);
   // Refresh periodically so another device's changes appear without signing in.
