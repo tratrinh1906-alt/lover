@@ -1,0 +1,7 @@
+{
+  "name": "50-bo-hoa-hanh-trinh-yeu-thuong",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lịch ghi nhận hành trình tặng 50 bó hoa, đồng bộ cloud không cần đăng nhập",
+  "dependencies": { "@supabase/supabase-js": "^2.49.1" }
+}

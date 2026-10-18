@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hành Trình Lấy Vợ</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+:root{--rose:#e94f78;--rose-dark:#c92e5c;--pink:#fff0f4;--ink:#512d3a;--muted:#987985;--cream:#fffaf8;--line:#f3dce4;--green:#4f987b}
+*{box-sizing:border-box}body{margin:0;color:var(--ink);font-family:'DM Sans',sans-serif;background:radial-gradient(ellipse at 10% 0%,#ffe1eb 0,transparent 32%),radial-gradient(ellipse at 95% 18%,#ffe9d9 0,transparent 30%),#fff8f7;min-height:100vh}
+body:before{content:"✿";position:fixed;top:11%;left:3%;font-size:45px;color:#efb7c8;opacity:.45;transform:rotate(-18deg);pointer-events:none}body:after{content:"♡";position:fixed;right:4%;bottom:8%;font-size:70px;color:#f0c1ce;opacity:.45;pointer-events:none}
+.wrap{max-width:1250px;margin:auto;padding:30px 22px 55px;position:relative}.hero{text-align:center;padding:18px 0 25px}.eyebrow{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:30px;padding:8px 15px;color:var(--rose-dark);font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;box-shadow:0 5px 18px #d77b9212}.hero h1{font:600 clamp(35px,5vw,58px)/1.1 'Playfair Display',serif;margin:19px 0 10px;letter-spacing:-1px}.hero h1 span{color:var(--rose)}.hero p{margin:0;color:var(--muted);font-size:15px}
+.dashboard{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;margin-bottom:22px}.panel{background:#ffffffd9;border:1px solid #f2dce4;border-radius:24px;padding:23px;box-shadow:0 14px 35px #8d40540b;backdrop-filter:blur(10px)}.progress-panel{display:flex;align-items:center;gap:22px}.flower-medal{width:90px;height:90px;flex:0 0 90px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#fff0f4,#ffd5e1);font-size:39px;box-shadow:inset 0 0 0 7px #ffffff99}.small-label{font-size:11px;text-transform:uppercase;letter-spacing:1.7px;color:var(--muted);font-weight:700}.count{font:600 38px 'Playfair Display',serif;margin:3px 0 8px}.count span{font-size:18px;color:#bd9aa6}.progress-track{height:9px;background:#f8e5eb;border-radius:30px;overflow:hidden;max-width:380px}.progress-fill{height:100%;width:0;background:linear-gradient(90deg,#ff9ab6,#df3e6b);border-radius:30px;transition:width .6s ease}.progress-note{font-size:12px;color:var(--muted);margin-top:8px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}.stat{border-radius:17px;padding:15px;background:#fff6f8;border:1px solid #f8e6ec}.stat .emoji{font-size:19px}.stat strong{display:block;font:600 25px 'Playfair Display',serif;margin:5px 0 2px}.stat span:last-child{font-size:12px;color:var(--muted)}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin:24px 0 16px}.year-control{display:flex;align-items:center;gap:12px}.year-control h2{font:600 27px 'Playfair Display',serif;margin:0;min-width:82px;text-align:center}.icon-btn{width:38px;height:38px;border-radius:12px;background:white;border:1px solid var(--line);color:var(--rose-dark);font-size:20px;cursor:pointer;transition:.2s}.icon-btn:hover{background:var(--pink);transform:translateY(-2px)}.toolbar-right{display:flex;gap:9px;flex-wrap:wrap}.segmented{display:flex;background:#f8e8ed;padding:4px;border-radius:13px;gap:3px}.segmented button{border:0;background:transparent;color:var(--muted);padding:10px 13px;border-radius:10px;font:600 12px 'DM Sans';cursor:pointer}.segmented button.active{background:white;color:var(--rose-dark);box-shadow:0 2px 8px #a64b6514}.add-btn{border:0;border-radius:13px;padding:11px 17px;background:linear-gradient(135deg,#ed6489,#d83d6b);color:white;font:700 13px 'DM Sans';box-shadow:0 7px 17px #e44b762e;cursor:pointer;transition:.2s}.add-btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px #e44b763e}
+.legend{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin:0 0 16px}.legend-dot{width:11px;height:11px;border:2px solid var(--rose);border-radius:50%;display:inline-block}
+.month-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.month-card{background:#ffffffdb;border:1px solid var(--line);border-radius:20px;padding:17px 16px 15px;box-shadow:0 9px 25px #8d405409;transition:transform .2s,border-color .2s;min-width:0}.month-card:hover{transform:translateY(-3px);border-color:#eeb8c8}.month-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.month-head h3{font:600 18px 'Playfair Display',serif;margin:0}.month-count{font-size:10px;font-weight:700;background:#fff0f4;color:var(--rose-dark);padding:5px 8px;border-radius:20px}.weekdays,.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}.weekdays{margin-bottom:7px}.weekdays span{font-size:10px;color:#b89aa4;font-weight:700;padding:3px 0}.day{aspect-ratio:1;min-width:0;border:0;border-radius:50%;background:transparent;color:#674552;font:500 11px 'DM Sans';display:grid;place-items:center;position:relative;cursor:pointer;padding:0;transition:background .15s,transform .15s}.day:hover{background:#ffe7ee;transform:scale(1.09)}.day.empty{cursor:default;pointer-events:none}.day.today:not(.gifted){box-shadow:inset 0 0 0 1px #eab2c3;color:var(--rose-dark);font-weight:700}.day.gifted{background:var(--rose);color:white;font-weight:700;box-shadow:0 2px 7px #e94f7844}.day.gifted:after{content:"";position:absolute;inset:1px;border:1.5px solid #bd244f;border-radius:50%;pointer-events:none}.day.gifted:hover{background:var(--rose-dark)}.month-footer{font-size:10px;color:#bd9aa6;margin-top:12px;display:flex;justify-content:space-between}
+.list-view{display:none;background:#ffffffd9;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 9px 25px #8d405409}.list-view.show{display:block}.month-grid.hide{display:none}.list-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}.list-header h3{font:600 21px 'Playfair Display',serif;margin:0}.gift-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.gift-item{display:flex;align-items:center;gap:13px;padding:13px;border:1px solid #f5e1e8;border-radius:15px;background:#fff9fb}.date-badge{width:49px;height:52px;border-radius:12px;background:#ffe5ed;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--rose-dark);flex-shrink:0}.date-badge strong{font:600 22px 'Playfair Display',serif;line-height:1}.date-badge span{font-size:9px;font-weight:700;text-transform:uppercase;margin-top:3px}.gift-info{flex:1;min-width:0}.gift-info strong{font-size:13px;display:block}.gift-info span{font-size:11px;color:var(--muted)}.remove-btn{border:0;background:transparent;color:#c7a1ad;font-size:19px;cursor:pointer;padding:5px}.remove-btn:hover{color:var(--rose-dark)}.empty-state{text-align:center;padding:48px 15px;color:var(--muted)}.empty-state .big{font-size:38px;margin-bottom:10px}.empty-state strong{display:block;color:var(--ink);font:600 20px 'Playfair Display',serif;margin-bottom:5px}.footer{text-align:center;color:#bd9aa6;font-size:11px;margin-top:28px}.footer span{color:var(--rose)}
+.modal-backdrop{display:none;position:fixed;inset:0;background:#42202e66;backdrop-filter:blur(5px);z-index:10;align-items:center;justify-content:center;padding:18px}.modal-backdrop.open{display:flex}.modal{width:min(100%,420px);background:#fffaf9;border:1px solid #f3d5df;border-radius:25px;padding:25px;box-shadow:0 25px 70px #4d1d2c30;animation:pop .25s ease}.modal h2{font:600 27px 'Playfair Display',serif;margin:0 0 6px}.modal p{font-size:13px;color:var(--muted);margin:0 0 20px}.field-label{display:block;font-size:12px;font-weight:700;margin:13px 0 7px}.modal input,.modal textarea{width:100%;border:1px solid #efd7df;border-radius:12px;padding:12px 13px;font:14px 'DM Sans';background:white;color:var(--ink);outline:none}.modal input:focus,.modal textarea:focus{border-color:var(--rose)}.modal textarea{resize:vertical;min-height:72px}.modal-actions{display:flex;gap:9px;margin-top:19px}.secondary-btn{flex:1;border:1px solid var(--line);border-radius:12px;background:white;color:var(--muted);padding:12px;font-weight:700;cursor:pointer}.modal .add-btn{flex:1}.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#5c3544;color:white;padding:12px 18px;border-radius:30px;font-size:13px;box-shadow:0 8px 24px #512d3a30;transition:.3s;z-index:20;white-space:nowrap}.toast.show{opacity:1;transform:translate(-50%,0)}@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}.flower-medal{animation:float 4s ease-in-out infinite}
+@media(max-width:900px){.month-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard{grid-template-columns:1fr}.month-card{padding:16px}.day{font-size:12px}}
+@media(max-width:560px){.wrap{padding:18px 12px 35px}.hero{padding-top:12px}.hero h1{font-size:38px}.hero p{font-size:13px}.panel{padding:17px;border-radius:20px}.progress-panel{gap:13px}.flower-medal{width:65px;height:65px;flex-basis:65px;font-size:30px}.count{font-size:31px}.stats{gap:8px}.stat{padding:12px}.toolbar{align-items:flex-start}.toolbar-right{width:100%;justify-content:space-between}.month-grid{grid-template-columns:1fr;gap:12px}.month-card{padding:18px}.day{font-size:13px}.weekdays span{font-size:11px}.gift-list{grid-template-columns:1fr}.list-view{padding:16px}.year-control h2{font-size:25px}.add-btn{padding:11px 13px}.segmented button{padding:10px 9px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.auth-screen{position:fixed;inset:0;z-index:100;background:radial-gradient(ellipse at 10% 0%,#ffe1eb 0,transparent 32%),radial-gradient(ellipse at 95% 18%,#ffe9d9 0,transparent 30%),#fff8f7;display:flex;align-items:center;justify-content:center;padding:20px}
+.auth-card{width:min(100%,430px);background:#ffffffed;border:1px solid #f2dce4;border-radius:26px;padding:28px;box-shadow:0 20px 60px #8d40541a}
+.auth-card h2{font:600 30px 'Playfair Display',serif;margin:10px 0 8px}.auth-card p{font-size:13px;color:var(--muted);line-height:1.6}
+.auth-card label{display:block;font-size:12px;font-weight:700;margin:13px 0 7px}
+.auth-card input{width:100%;border:1px solid #efd7df;border-radius:12px;padding:12px 13px;font:14px 'DM Sans';background:white;color:var(--ink);outline:none}
+.auth-card input:focus{border-color:var(--rose)}.auth-message{font-size:12px!important;color:var(--rose-dark)!important;min-height:18px}
+.auth-actions{display:flex;gap:9px;margin-top:16px}.auth-actions button{flex:1}
+.auth-link{background:transparent;border:0;color:var(--rose-dark);font:600 12px 'DM Sans';cursor:pointer;margin-top:12px}
+.account-bar{display:flex;align-items:center;gap:10px;justify-content:flex-end;font-size:11px;color:var(--muted);margin-top:-10px;margin-bottom:12px}
+.account-bar button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 10px;color:var(--rose-dark);font:600 11px 'DM Sans';cursor:pointer}
+.sync-status{font-size:11px;color:var(--green)}
+@media(max-width:560px){.auth-card{padding:22px}}
+
+</style>
+</head>
+<body>
+
+<div class="wrap" id="appWrap">
+  <div class="account-bar"><span class="sync-status" id="syncStatus">● Đang kết nối dữ liệu</span></div>
+  <header class="hero">
+    <div class="eyebrow">✿ &nbsp; Hành Trình Lấy Vợ &nbsp; ✿</div>
+    <h1>50 bó hoa, <span>là có vợ</span></h1>
+  </header>
+
+  <section class="dashboard">
+    <div class="panel progress-panel">
+      <div class="flower-medal">💐</div>
+      <div style="flex:1;min-width:0">
+        <div class="small-label">Hành trình</div>
+        <div class="count"><span id="giftCount">0</span> <span>/ 50 bó hoa</span></div>
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-note" id="progressNote">Mỗi bó hoa, gửi đi một nỗi nhớ.</div>
+      </div>
+    </div>
+    <div class="panel stats">
+      <div class="stat"><span class="emoji">🌷</span><strong id="yearCount">0</strong><span>Bó hoa trong năm đang xem</span></div>
+      <div class="stat"><span class="emoji">💌</span><strong id="remainingCount">50</strong><span>Bó hoa còn lại đến mục tiêu</span></div>
+    </div>
+  </section>
+
+  <div class="toolbar">
+    <div class="year-control">
+      <button class="icon-btn" id="prevYear" aria-label="Năm trước">‹</button>
+      <h2 id="yearTitle">2026</h2>
+      <button class="icon-btn" id="nextYear" aria-label="Năm sau">›</button>
+    </div>
+    <div class="toolbar-right">
+      <div class="segmented" role="group" aria-label="Kiểu hiển thị">
+        <button class="active" id="calendarMode">▦ Lịch cả năm</button>
+        <button id="listMode">☷ Ngày đã tặng</button>
+      </div>
+      <button class="add-btn" id="openModal">＋ Tích nhận bó hoa</button>
+    </div>
+  </div>
+  <div class="legend"><span class="legend-dot"></span> Ngày đã tặng hoa <span style="margin-left:7px">·</span> <span>Chạm vào một ngày để ghi nhận hoặc xem ghi chú</span></div>
+  <main id="monthGrid" class="month-grid"></main>
+  <section id="listView" class="list-view">
+    <div class="list-header"><h3>Những ngày có hoa ♡</h3><span class="small-label" id="listCount">0 lần</span></div>
+    <div id="giftList" class="gift-list"></div>
+  </section>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <form class="modal" id="giftForm">
+    <h2>Ghi lại một bó hoa 🌷</h2>
+    <p>Lưu giữ ngày đặc biệt ấy trong hành trình yêu thương.</p>
+    <label class="field-label" for="giftDate">Ngày tặng hoa</label>
+    <input type="date" id="giftDate" required>
+    <label class="field-label" for="giftNote">Lời nhắn nhỏ</label>
+    <div class="modal-actions">
+      <button type="button" class="secondary-btn" id="cancelModal">Để sau</button>
+      <button type="submit" class="add-btn">♡ Lưu bó hoa</button>
+    </div>
+  </form>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(() => {
+  const TARGET = 50;
+  const MONTHS = ['Tháng Một','Tháng Hai','Tháng Ba','Tháng Tư','Tháng Năm','Tháng Sáu','Tháng Bảy','Tháng Tám','Tháng Chín','Tháng Mười','Tháng Mười Một','Tháng Mười Hai'];
+  const MONTH_SHORT = ['Thg 1','Thg 2','Thg 3','Thg 4','Thg 5','Thg 6','Thg 7','Thg 8','Thg 9','Thg 10','Thg 11','Thg 12'];
+  const WEEKDAYS = ['T2','T3','T4','T5','T6','T7','CN'];
+  const today = new Date();
+  let year = today.getFullYear(), view = 'calendar', gifts = {}, busy = false;
+  const $ = id => document.getElementById(id);
+  const pad = n => String(n).padStart(2,'0');
+  const keyFor = (y,m,d) => `${y}-${pad(m+1)}-${pad(d)}`;
+  const parseKey = k => { const [y,m,d]=k.split('-').map(Number); return new Date(y,m-1,d); };
+  const sortedKeys = () => Object.keys(gifts).sort();
+  const allCount = () => sortedKeys().length;
+  const escapeHtml = s => String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function setSync(msg,bad=false){ $('syncStatus').textContent='● '+msg; $('syncStatus').style.color=bad?'#c92e5c':'#4f987b'; }
+  function toast(msg){ $('toast').textContent=msg; $('toast').classList.add('show'); clearTimeout(toast.timer); toast.timer=setTimeout(()=>$('toast').classList.remove('show'),2600); }
+  async function api(method, body=null, date=null){
+    const url = date ? `/api/gifts?date=${encodeURIComponent(date)}` : '/api/gifts';
+    const res = await fetch(url,{method,headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined});
+    let data={}; try{data=await res.json()}catch{}
+    if(!res.ok) throw new Error(data.error||`Lỗi máy chủ (${res.status})`);
+    return data;
+  }
+  function updateStats(){
+    const total=allCount(), thisYear=sortedKeys().filter(k=>k.startsWith(year+'-')).length;
+    $('giftCount').textContent=total; $('yearCount').textContent=thisYear;
+    $('remainingCount').textContent=Math.max(0,TARGET-total);
+    $('progressFill').style.width=Math.min(100,total/TARGET*100)+'%';
+    $('progressNote').textContent=total>=TARGET?'Đủ 50 bó hoa rồi! Một hành trình thật ngọt ngào. 💖':`Đã hoàn thành ${Math.round(Math.min(100,total/TARGET*100))}% hành trình — ${Math.max(0,TARGET-total)} bó hoa nữa thôi!`;
+    $('yearTitle').textContent=year;
+  }
+  function openFor(key){
+    $('giftDate').value=key || keyFor(today.getFullYear(),today.getMonth(),today.getDate());
+    $('giftNote').value=key && gifts[key] ? (gifts[key].note||'') : '';
+    $('modalBackdrop').classList.add('open'); setTimeout(()=>$('giftDate').focus(),50);
+  }
+  function closeModal(){ $('modalBackdrop').classList.remove('open'); }
+  function renderCalendar(){
+    const grid=$('monthGrid'); grid.innerHTML='';
+    for(let m=0;m<12;m++){
+      const first=new Date(year,m,1), offset=(first.getDay()+6)%7, days=new Date(year,m+1,0).getDate();
+      const count=Array.from({length:days},(_,i)=>keyFor(year,m,i+1)).filter(k=>gifts[k]).length;
+      const card=document.createElement('section'); card.className='month-card';
+      card.innerHTML=`<div class="month-head"><h3>${MONTHS[m]}</h3><span class="month-count">${count} 🌷</span></div><div class="weekdays">${WEEKDAYS.map(w=>`<span>${w}</span>`).join('')}</div><div class="days"></div><div class="month-footer"><span>${year}</span><span>${count?`Đã gửi ${count} bó hoa`:'Chờ một ngày thật xinh ♡'}</span></div>`;
+      const daysEl=card.querySelector('.days');
+      for(let i=0;i<offset;i++){const blank=document.createElement('span');blank.className='day empty';daysEl.appendChild(blank);}
+      for(let d=1;d<=days;d++){
+        const key=keyFor(year,m,d), isGift=!!gifts[key], isToday=year===today.getFullYear()&&m===today.getMonth()&&d===today.getDate();
+        const btn=document.createElement('button'); btn.type='button'; btn.className='day'+(isGift?' gifted':'')+(isToday?' today':''); btn.textContent=d;
+        btn.title=isGift?(gifts[key].note||'Đã tặng hoa — nhấn để sửa hoặc xóa'):'Nhấn để ghi nhận bó hoa';
+        btn.setAttribute('aria-label',`${d} ${MONTHS[m]} ${year}${isGift?', đã tặng hoa':''}`);
+        btn.addEventListener('click',()=>{ if(isGift){ const choice=prompt('Ngày này đã có hoa rồi 🌷\nNhập ghi chú mới; để trống để sửa ngày; hoặc nhập XOA để xóa lần tặng:',gifts[key].note||''); if(choice===null)return; if(choice.trim().toUpperCase()==='XOA'){deleteGift(key);}else if(choice.trim()){upsertGift(key,choice.trim());}else openFor(key); } else openFor(key); });
+        daysEl.appendChild(btn);
+      }
+      grid.appendChild(card);
+    }
+  }
+  function renderList(){
+    const list=$('giftList'), keys=sortedKeys().filter(k=>k.startsWith(year+'-'));
+    $('listCount').textContent=`${keys.length} lần`;
+    if(!keys.length){list.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="big">🌷</div><strong>Chưa có bó hoa nào trong năm này</strong><span>Một ngày đẹp trời sẽ sớm được đánh dấu ở đây.</span></div>';return;}
+    list.innerHTML=keys.map(k=>{const d=parseKey(k);return `<article class="gift-item"><div class="date-badge"><strong>${d.getDate()}</strong><span>${MONTH_SHORT[d.getMonth()]}</span></div><div class="gift-info"><strong>${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}</strong><span>${escapeHtml(gifts[k].note||'Một bó hoa, một niềm vui ♡')}</span></div><button class="remove-btn" data-key="${k}" title="Xóa lần tặng" aria-label="Xóa">×</button></article>`;}).join('');
+    list.querySelectorAll('.remove-btn').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.key;if(confirm('Xóa lần tặng hoa ngày '+k+'?'))deleteGift(k);}));
+  }
+  function render(){updateStats();renderCalendar();renderList();$('monthGrid').classList.toggle('hide',view!=='calendar');$('listView').classList.toggle('show',view==='list');$('calendarMode').classList.toggle('active',view==='calendar');$('listMode').classList.toggle('active',view==='list');}
+  async function refreshFromCloud(showMessage=false){
+    setSync('Đang tải dữ liệu…');
+    try { const data=await api('GET'); gifts={}; (data.gifts||[]).forEach(row=>{gifts[row.gift_date]={note:row.note||''};}); render();setSync('Dữ liệu đã đồng bộ'); }
+    catch(err){setSync('Chưa kết nối được',true); if(showMessage)toast('Không tải được dữ liệu: '+err.message);}
+  }
+  async function upsertGift(key,note){
+    const previous=gifts[key]; gifts[key]={note};render();setSync('Đang lưu…');
+    try{await api('POST',{gift_date:key,note});setSync('Đã lưu lên cloud');toast('Đã lưu bó hoa ♡');}
+    catch(err){if(previous)gifts[key]=previous;else delete gifts[key];render();setSync('Lưu thất bại',true);toast('Lỗi lưu dữ liệu: '+err.message);}
+  }
+  async function deleteGift(key){
+    const old=gifts[key];delete gifts[key];render();setSync('Đang xóa…');
+    try{await api('DELETE',null,key);setSync('Đã đồng bộ');toast('Đã xóa lần tặng hoa.');}
+    catch(err){if(old)gifts[key]=old;render();setSync('Xóa thất bại',true);toast('Không xóa được: '+err.message);}
+  }
+  $('prevYear').addEventListener('click',()=>{year--;render();});
+  $('nextYear').addEventListener('click',()=>{year++;render();});
+  $('calendarMode').addEventListener('click',()=>{view='calendar';render();});
+  $('listMode').addEventListener('click',()=>{view='list';render();});
+  $('openModal').addEventListener('click',()=>openFor(null));
+  $('cancelModal').addEventListener('click',closeModal);
+  $('modalBackdrop').addEventListener('click',e=>{if(e.target===$('modalBackdrop'))closeModal();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+  $('giftForm').addEventListener('submit',async e=>{
+    e.preventDefault();const key=$('giftDate').value;if(!key)return;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(key)){toast('Vui lòng chọn ngày hợp lệ.');return;}
+    const [y,m,d]=key.split('-').map(Number), date=new Date(y,m-1,d);
+    if(date.getFullYear()!==y||date.getMonth()!==m-1||date.getDate()!==d){toast('Ngày bạn chọn không hợp lệ.');return;}
+    year=y;closeModal();await upsertGift(key,$('giftNote').value.trim());
+  });
+  refreshFromCloud(true);
+  // Refresh periodically so another device's changes appear without signing in.
+  setInterval(()=>{if(!busy && !$('modalBackdrop').classList.contains('open'))refreshFromCloud(false);},15000);
+})();
+</script>
+</body>
+</html>
