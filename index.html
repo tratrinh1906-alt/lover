@@ -42,17 +42,17 @@ body:before{content:"✿";position:fixed;top:11%;left:3%;font-size:45px;color:#e
   <div class="account-bar"><span class="sync-status" id="syncStatus">● Đang kết nối dữ liệu</span></div>
   <header class="hero">
     <div class="eyebrow">✿ &nbsp; Hành Trình Lấy Vợ &nbsp; ✿</div>
-    <h1>50 bó hoa, <span>là có vợ</span></h1>
+    <h1>50 bó hoa, <span>là lấy vợ</span></h1>
   </header>
 
   <section class="dashboard">
     <div class="panel progress-panel">
       <div class="flower-medal">💐</div>
       <div style="flex:1;min-width:0">
-        <div class="small-label">Hành trình</div>
+        <div class="small-label">Hành trình </div>
         <div class="count"><span id="giftCount">0</span> <span>/ 50 bó hoa</span></div>
         <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-        <div class="progress-note" id="progressNote">Mỗi bó hoa, gửi đi một nỗi nhớ.</div>
+        <div class="progress-note" id="progressNote">Mỗi bó hoa là gửi đi một nỗi nhớ ♡</div>
       </div>
     </div>
     <div class="panel stats">
@@ -89,7 +89,7 @@ body:before{content:"✿";position:fixed;top:11%;left:3%;font-size:45px;color:#e
     <p>Lưu giữ ngày đặc biệt ấy trong hành trình yêu thương.</p>
     <label class="field-label" for="giftDate">Ngày tặng hoa</label>
     <input type="date" id="giftDate" required>
-    <label class="field-label" for="giftNote">Lời nhắn nhỏ</label>
+    <label class="field-label" for="giftNote">Lời nhắn nhỏ </label>
     <div class="modal-actions">
       <button type="button" class="secondary-btn" id="cancelModal">Để sau</button>
       <button type="submit" class="add-btn">♡ Lưu bó hoa</button>
@@ -129,12 +129,24 @@ body:before{content:"✿";position:fixed;top:11%;left:3%;font-size:45px;color:#e
     $('progressNote').textContent=total>=TARGET?'Đủ 50 bó hoa rồi! Một hành trình thật ngọt ngào. 💖':`Đã hoàn thành ${Math.round(Math.min(100,total/TARGET*100))}% hành trình — ${Math.max(0,TARGET-total)} bó hoa nữa thôi!`;
     $('yearTitle').textContent=year;
   }
+  // Resolve the form fields by ID, with structural fallbacks for older/customized HTML.
+  const getGiftDateInput = () => $('giftDate') || document.querySelector('#giftForm input[type="date"]');
+  const getGiftNoteInput = () => $('giftNote') || document.querySelector('#giftForm textarea');
+  const getModalBackdrop = () => $('modalBackdrop') || document.querySelector('#giftForm')?.closest('.modal-backdrop');
   function openFor(key){
-    $('giftDate').value=key || keyFor(today.getFullYear(),today.getMonth(),today.getDate());
-    $('giftNote').value=key && gifts[key] ? (gifts[key].note||'') : '';
-    $('modalBackdrop').classList.add('open'); setTimeout(()=>$('giftDate').focus(),50);
+    const dateInput = getGiftDateInput();
+    const noteInput = getGiftNoteInput();
+    const backdrop = getModalBackdrop();
+    if (!dateInput || !noteInput || !backdrop) {
+      console.error('Không tìm thấy form nhập bó hoa.', { dateInput: !!dateInput, noteInput: !!noteInput, backdrop: !!backdrop });
+      toast('Thiếu form nhập bó hoa trong HTML. Hãy cập nhật lại index.html mới nhất rồi deploy lại.');
+      return;
+    }
+    dateInput.value = key || keyFor(today.getFullYear(),today.getMonth(),today.getDate());
+    noteInput.value = key && gifts[key] ? (gifts[key].note||'') : '';
+    backdrop.classList.add('open'); setTimeout(()=>dateInput.focus(),50);
   }
-  function closeModal(){ $('modalBackdrop').classList.remove('open'); }
+  function closeModal(){ const backdrop = getModalBackdrop(); if (backdrop) backdrop.classList.remove('open'); }
   function renderCalendar(){
     const grid=$('monthGrid'); grid.innerHTML='';
     for(let m=0;m<12;m++){
@@ -187,11 +199,13 @@ body:before{content:"✿";position:fixed;top:11%;left:3%;font-size:45px;color:#e
   $('modalBackdrop').addEventListener('click',e=>{if(e.target===$('modalBackdrop'))closeModal();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
   $('giftForm').addEventListener('submit',async e=>{
-    e.preventDefault();const key=$('giftDate').value;if(!key)return;
+    e.preventDefault();const dateInput=getGiftDateInput(), noteInput=getGiftNoteInput();
+    if(!dateInput || !noteInput){toast('Thiếu ô ngày hoặc ghi chú trong form. Hãy deploy lại index.html mới nhất.');return;}
+    const key=dateInput.value;if(!key)return;
     if(!/^\d{4}-\d{2}-\d{2}$/.test(key)){toast('Vui lòng chọn ngày hợp lệ.');return;}
     const [y,m,d]=key.split('-').map(Number), date=new Date(y,m-1,d);
     if(date.getFullYear()!==y||date.getMonth()!==m-1||date.getDate()!==d){toast('Ngày bạn chọn không hợp lệ.');return;}
-    year=y;closeModal();await upsertGift(key,$('giftNote').value.trim());
+    year=y;closeModal();await upsertGift(key,noteInput.value.trim());
   });
   refreshFromCloud(true);
   // Refresh periodically so another device's changes appear without signing in.

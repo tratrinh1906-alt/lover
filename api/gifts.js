@@ -9,10 +9,18 @@ module.exports = async function handler(req, res) {
     res.setHeader('Allow', 'GET, POST, DELETE, OPTIONS');
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  const url = process.env.SUPABASE_URL;
+  // Accept either the project root URL or a URL accidentally pasted with /rest/v1.
+  const rawUrl = process.env.SUPABASE_URL;
+  const url = rawUrl ? rawUrl.trim().replace(/\/+$/, '').replace(/\/rest\/v1$/i, '') : '';
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return res.status(500).json({ error: 'Chưa cấu hình Supabase trên Vercel.' });
-  const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  if (!url || !key) return res.status(500).json({ error: 'Chưa cấu hình SUPABASE_URL hoặc SUPABASE_SERVICE_ROLE_KEY trên Vercel.' });
+  let supabase;
+  try {
+    supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  } catch (configError) {
+    console.error('Supabase client config error:', configError.message);
+    return res.status(500).json({ error: 'SUPABASE_URL không hợp lệ. Hãy dùng Project URL gốc, ví dụ https://xxxx.supabase.co.' });
+  }
   try {
     if (req.method === 'GET') {
       const { data, error } = await supabase.from('flower_gifts_public').select('gift_date,note').order('gift_date');
@@ -33,7 +41,7 @@ module.exports = async function handler(req, res) {
     if (error) throw error;
     return res.status(200).json({ ok: true });
   } catch (err) {
-    console.error('flower_gifts API error:', err.message);
-    return res.status(500).json({ error: 'Không thao tác được với dữ liệu. Kiểm tra cấu hình Supabase.' });
+    console.error('flower_gifts API error:', err.message, err.code || '');
+    return res.status(500).json({ error: 'Supabase báo lỗi khi đọc/ghi dữ liệu. Vào Vercel → Deployments → Functions → api/gifts → Logs để xem chi tiết; kiểm tra bảng flower_gifts_public đã được tạo chưa.' });
   }
 };
